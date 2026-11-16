@@ -1,0 +1,2 @@
+Programs are synchronous. Write `function main()`, never `async function`, `await` or `Promise<…>`: every call, including a Package's, returns its value directly. Built-ins need no import: `Math`, `JSON`, `Temporal`, `Map`, `console` and the rest the built-ins list tool lists. Everything else you use, a Package's functions and types (`@scope/name`) or a Submilli module (`submilli:…`), must be imported.
+

@@ -1,0 +1,28 @@
+[project]
+name = "submilli-appworld"
+version = "0.1.0"
+description = "AppWorld tasks through Deep Agents: Submilli with Packages, against tool calling."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # MCP serving is on GitHub main only (0.2.0.dev0); PyPI's 0.1.3.post1 has no `serve mcp`.
+    # scripts/setup.sh clones the pinned commit into .tools/appworld with its Git LFS bundles.
+    "appworld[mcp]",
+    "deepagents==0.7.32",
+    "langchain-submilli[deepagents]==0.1.3",
+    "langchain-mcp-adapters==0.3.2",
+    "langchain-deepseek==1.1.1",
+    "pyyaml",
+    # AppWorld patches pydantic's GenerateSchema.match_type with the pre-2.13 signature.
+    "pydantic>=2.12,<2.13",
+    "jinja2>=3.1.6",
+]
+
+[tool.uv]
+package = false
+# AppWorld leaves its web and database stack unbounded, and later releases break it (FastAPI
+# refuses Path(embed=...), SQLAlchemy 2.1 URL-encodes in-memory database names). Hold them at
+# AppWorld's pinned commit (2026-09-03).
+exclude-newer-package = { fastapi = "2026-09-04T00:00:00Z", starlette = "2026-09-04T00:00:00Z", sqlalchemy = "2026-09-04T00:00:00Z", sqlmodel = "2026-09-04T00:00:00Z", sqlalchemy-utils = "2026-09-04T00:00:00Z", pydantic-extra-types = "2026-09-04T00:00:00Z", pendulum = "2026-09-04T00:00:00Z", uvicorn = "2026-09-04T00:00:00Z", polyfactory = "2026-09-04T00:00:00Z", fastapi-login = "2026-09-04T00:00:00Z" }
+
+[tool.uv.sources]
+appworld = { path = ".tools/appworld", editable = true }

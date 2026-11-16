@@ -1,0 +1,22 @@
+.venv/
+.tools/
+__pycache__/
+# AppWorld's protected data (downloaded by `appworld download data`) and its unpacked code.
+data/
+experiments/
+# Transcripts and AppWorld outputs: they hold task data.
+runs/
+.submilli-home/
+.submilli-home-dev/
+.env
+.submilli/
+.vscode/
+# Derived from AppWorld's protected API docs and responses. Committed only encrypted, in
+# generator/derived.bundle (scripts/bundle.py).
+packages/
+submilli.toml
+blueprint/
+generator/observed.json
+generator/types.json
+generator/notes.json
+.observe-server.log
