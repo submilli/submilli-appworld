@@ -1,12 +1,7 @@
-# Submilli on AppWorld: Packages vs MCP, code mode and tool calling
+# Submilli vs MCP, code mode and tool calling on the AppWorld benchmark
 
-[Website](https://submilli.ai) ·
-[Docs](https://submilli.ai/docs/) ·
-[Submilli runtime](https://github.com/submilli/submilli-runtime) ·
-[submilli-python](https://github.com/submilli/submilli-python) ·
-[Full write-up](results/2026-11-09-test-normal/README.md)
-
-Submilli beat the alternatives across all models tested in success rate, cost and speed.
+[Submilli](https://submilli.ai) beat the alternatives across all models tested in success rate, cost and speed.
+Submilli beat MCP tool calls on every model we tested: 10–21% higher success rate, 33–63% cheaper, and 1.5–3x faster.
 
 ## What we tested
 
@@ -19,7 +14,7 @@ The four ways to act:
 - **Submilli:** the agent writes a short TypeScript program. The program calls the apps through typed Packages, one per app, and Submilli runs it.
 - **MCP:** the agent calls the tools of AppWorld's own MCP server, one call per API. This is how most agents reach apps today.
 - **Code mode (using QuickJS):** the agent uses Deep Agents' own code mode over the same MCP tools.
-- **Tool calling:** the agent calls one plain tool per API, with exactly the same APIs as the Submilli Packages. This is our control.
+- **Tool calling:** the agent calls one plain tool per API, with exactly the same APIs as the Submilli Packages.
 
 We ran each of these with six models: GPT-6 Luna, GPT-6.1 Terra, GPT-6.1 Sol, Claude Haiku 5.5, Claude Sonnet 5.5 and DeepSeek V4.1 Flash (at two effort levels). That makes seven model setups. Every run used the same harness, [Deep Agents](https://github.com/langchain-ai/deepagents), and the same core prompt.
 
@@ -47,11 +42,10 @@ Each cell is the share of tasks passed, then the cost per task in USD.
 
 ## Key observations
 
-- **Long tasks show the biggest gap.** On the 40 tasks that need more than 40 API calls, Submilli was the cheapest and fastest way to act for every model. It passed the most tasks or tied. Its cost and number of model calls stayed about flat as tasks got longer. See [Long-running tasks](#long-running-tasks).
 - **A cheap model with Submilli beat expensive models over MCP.** Haiku with Submilli passed 88.7% of tasks at $0.0041 each. Sonnet over MCP passed 81.5% at $0.1206, and Sol over MCP passed 82.7% at $0.0743.
+- **Long tasks show the biggest gap.** On the 40 tasks that need more than 40 API calls, Submilli was the cheapest and fastest way to act for every model. It passed the most tasks or tied. Its cost and number of model calls stayed about flat as tasks got longer. See [Long-running tasks](#long-running-tasks).
 - **Expensive models save the most.** Against tool calling, Submilli cut cost by 38% for Sol, 29% for Sonnet and 23% for Terra.
-- **Code alone does not explain the gap.** Code mode also lets the agent write code, and it trailed Submilli by 8 to 16 points.
-- **Tool calling is cheaper on the shortest tasks.** On tasks of 15 API calls or fewer, plain tool calling was cheaper for every model. A program has a fixed setup cost, and it pays off past about 15 API calls.
+- **Code mode alone isn't sufficient.** Code mode using quickJS also lets the agent write code, and it trailed Submilli by 8 to 16 points and costs 16-52% more.
 
 ## Why the results are so much better
 
