@@ -433,13 +433,42 @@ We also considered splitting `complete_task` into one API that requires an answe
 
 ## Reproduce
 
+From the repository root, run `scripts/setup.sh` first. It installs Submilli v0.6.3,
+QuickJS 0.3.11, and the pinned public Python SDK commit with function discovery.
+Put a valid `ANTHROPIC_API_KEY` (or `CLAUDE_API_KEY`) in `.env`.
+
+These commands run all 168 `test_normal` tasks with Haiku through each approach,
+then report the new results. Choose a new round name to keep older runs separate.
+For a smoke test, add `--limit 1` to each `bench/run.py` command. Leave it off for
+the full benchmark. The four runs are sequential because they share workers.
+
 ```sh
+round=haiku-reproduction
 .venv/bin/python bench/servers.py up --workers 10 --mcp
-.venv/bin/python bench/run.py --round <round> --arm submilli --model claude-haiku --split test_normal --function-docs --core-variant rule
-.venv/bin/python bench/run.py --round <round> --arm tools --model claude-haiku --split test_normal --core-variant rule
-.venv/bin/python bench/run.py --round <round> --arm mcp --model claude-haiku --split test_normal --core-variant rule
-.venv/bin/python bench/run.py --round <round> --arm quickjs --model claude-haiku --split test_normal --core-variant rule
-.venv/bin/python bench/collect.py --round <round> [--min-api-calls 40]
+.venv/bin/python bench/run.py --round "$round" --arm submilli --model claude-haiku --split test_normal --function-docs --core-variant rule
+.venv/bin/python bench/run.py --round "$round" --arm tools --model claude-haiku --split test_normal --core-variant rule
+.venv/bin/python bench/run.py --round "$round" --arm mcp --model claude-haiku --split test_normal --core-variant rule
+.venv/bin/python bench/run.py --round "$round" --arm quickjs --model claude-haiku --split test_normal --core-variant rule
+.venv/bin/python bench/collect.py --round "$round"
+.venv/bin/python bench/report.py --submilli "$round" --tool-calling "$round"
+.venv/bin/python bench/servers.py down
+```
+
+To collect only tasks whose reference solutions use more than 40 API calls, run
+`.venv/bin/python bench/collect.py --round "$round" --min-api-calls 40`.
+The report already includes separate tables for those tasks. Small smoke runs
+can have empty task categories; these appear as missing values or omitted rows.
+
+For Bedrock, put `BEDROCK_API_KEY` in `.env` and run `export BENCH_BEDROCK=1`
+before the commands above. This explicitly selects Bedrock instead of Anthropic;
+it is not an automatic fallback for an invalid Anthropic key. Recorded runs include
+the provider. An HTTP 401 means the selected provider rejected the credential;
+replace that key or explicitly select a provider for which you have access.
+
+The original table-generation command below requires the original run records,
+which are not included in a fresh checkout. Use it only if those rounds exist locally.
+
+```sh
 .venv/bin/python bench/report.py --submilli tn3fd luna-r2 --tool-calling tn2 luna-r2 --override tn-rule tn-mcp3
 ```
 

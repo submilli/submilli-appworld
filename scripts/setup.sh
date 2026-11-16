@@ -7,7 +7,7 @@
 set -eu
 
 appworld_commit=42b5bcf3cd334fee33f0c37c02070a9f5807add5
-submilli_version=v0.6.1
+submilli_version=v0.6.3
 root=$(cd "$(dirname "$0")/.." && pwd)
 tools=$root/.tools
 cd "$root"
@@ -31,7 +31,7 @@ for bundle in src/appworld/.source/apps.bundle src/appworld/.source/tests.bundle
     fi
 done
 
-uv sync -q
+uv sync --locked -q
 (cd "$tools/appworld" && "$root/.venv/bin/appworld" install --repo >/dev/null)
 [ -d "$root/data/tasks" ] || "$root/.venv/bin/appworld" download data --root "$root" >/dev/null
 

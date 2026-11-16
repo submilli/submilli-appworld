@@ -199,6 +199,8 @@ The Packages and the response shapes they come from are derived from AppWorld's 
 scripts/setup.sh
 ```
 
+The setup pins Submilli v0.6.3, QuickJS 0.3.11, and a public Python SDK commit with function discovery.
+
 This clones AppWorld at the pinned commit and fetches its Git LFS bundles without git-lfs. It then creates the Python environment, downloads AppWorld's data into `data/`, installs `submilli` and `submilli-server` into `.tools/bin`, and unpacks the Packages from `generator/derived.bundle`. Model keys are read from `.env` (gitignored): `ANTHROPIC_API_KEY` (or `CLAUDE_API_KEY`), `OPENAI_API_KEY` and `DEEPSEEK_API_KEY`. With `BEDROCK_API_KEY` set and `BENCH_BEDROCK=1`, the Claude and GPT models are served from Amazon Bedrock's global profiles instead. DeepSeek always runs on its own API.
 
 ### Running a round

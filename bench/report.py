@@ -111,6 +111,8 @@ def margins_table(data) -> str:
             noise = key in ("tgc", "sgc") and abs(s_val - o_val) < 1.5  # within run-to-run noise, either way
             if s_val == o_val:
                 cells.append(f"≈ tied with {ARMS[best]}" if key in ("tgc", "sgc") else f"✅ tied with {ARMS[best]}")
+            elif key == "cost_per_task" and o_val == 0:
+                cells.append(f"percentage unavailable against {ARMS[best]} (zero baseline)")
             elif wins:
                 cells.append(f"{'≈' if noise else '✅'} {gap(o_val)} {ahead} {ARMS[best]}")
             else:
@@ -155,6 +157,8 @@ def code_use_table(data) -> str:
         programs, direct = calls(runs, lambda n: n == "eval"), calls(runs, lambda n: "__" in n)
         sub_programs = calls(data[(model, "submilli")][0], lambda n: n.endswith("typescript__execute"))
         s_, c, q, m = (summary(data[(model, a)])["tgc"] for a in ("submilli", "quickjs_code_only", "quickjs", "mcp"))
+        if not programs or not sub_programs or not (sum(programs) + sum(direct)):
+            continue
         lines.append(f"| {name} | {100 * sum(programs) / (sum(programs) + sum(direct)):.0f}% | "
                      f"{statistics.mean(programs):.1f} / {statistics.mean(sub_programs):.1f} | "
                      f"**{s_:.1f}%** | {c:.1f}% | {q:.1f}% | {m:.1f}% |")
@@ -174,6 +178,8 @@ def lead_table(data, keep, metric: str = "cost") -> str:
         value = {}
         for arm in arms:
             runs = [r for group in data[(model, arm)] for r in group if "transcript" in r and keep(r["task_id"])]
+            if not runs:
+                break
             if metric == "cost":
                 value[arm] = statistics.mean(sum(collect.call_cost(model, m.get("usage") or {}) for m in r["transcript"]
                                                  if m["type"] == "ai") for r in runs)
@@ -181,12 +187,17 @@ def lead_table(data, keep, metric: str = "cost") -> str:
                 value[arm] = statistics.median(r.get("agent_seconds", 0) for r in runs)
             else:
                 value[arm] = 100 * sum(bool(r["evaluation"].get("success")) for r in runs) / len(runs)
+        if len(value) != len(arms):
+            continue
         pick = max if metric == "success" else min
         nxt = pick((a for a in arms if a != "submilli"), key=value.get)
         s_, o = value["submilli"], value[nxt]
         tied = [ARMS[a] for a in arms if a != "submilli" and value[a] == o]
         other = tied[0] if len(tied) == 1 else ", ".join(tied[:-1]) + " and " + tied[-1]
-        if metric == "cost":
+        if metric in ("cost", "time") and o == 0:
+            words = f"tied with {other}" if s_ == 0 else f"percentage unavailable against {other} (zero baseline)"
+            fmt = "${:.4f}" if metric == "cost" else "{:.1f} s"
+        elif metric == "cost":
             words = (f"**{100 * (o - s_) / o:.0f}% cheaper** than {other}" if s_ < o
                      else f"{100 * (s_ - o) / o:.0f}% more than {other}")
             fmt = "${:.4f}"
@@ -214,14 +225,21 @@ def subset_table(data, keep, label: str) -> str:
         stats = {}
         for arm in CORE:
             runs = [r for group in data[(model, arm)] for r in group if "transcript" in r and keep(r["task_id"])]
+            if not runs:
+                continue
             stats[arm] = (100 * sum(bool(r["evaluation"].get("success")) for r in runs) / len(runs),
                           statistics.mean(sum(collect.call_cost(model, m.get("usage") or {}) for m in r["transcript"]
                                               if m["type"] == "ai") for r in runs),
                           statistics.median(r.get("agent_seconds", 0) for r in runs))
+        if not stats:
+            continue
         best = [max(v[0] for v in stats.values()), min(v[1] for v in stats.values()), min(v[2] for v in stats.values())]
         cells = []
         for k, fmt in enumerate(("{:.1f}%", "${:.4f}", "{:.1f}")):
             for arm in CORE:
+                if arm not in stats:
+                    cells.append("–")
+                    continue
                 text = fmt.format(stats[arm][k])
                 cells.append(f"**{text}**" if stats[arm][k] == best[k] else text)
         lines.append(f"| {name} | " + " | ".join(cells) + " |")
@@ -298,6 +316,8 @@ def main():
                       "quickjs_code_only": args.tool_calling, "quickjs": args.tool_calling})
     for name in args.override:
         data.update(load_runs({arm: [name] for arm in ARMS}))
+    if not data:
+        parser.error("no run records found; use the round name passed to bench/run.py")
     print("## All arms\n\n" + main_table(data))
     print("\n## Submilli against the other arms\n\n" + margins_table(data))
     print("\n## Submilli against QuickJS on MCP\n\n" + quickjs_table(data))

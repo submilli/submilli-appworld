@@ -8,6 +8,7 @@ dependencies = [
     # scripts/setup.sh clones the pinned commit into .tools/appworld with its Git LFS bundles.
     "appworld[mcp]",
     "deepagents==0.7.32",
+    "langchain-quickjs==0.3.11",
     "langchain-submilli[deepagents]==0.1.3",
     "langchain-mcp-adapters==0.3.2",
     "langchain-deepseek==1.1.1",
@@ -26,3 +27,8 @@ exclude-newer-package = { fastapi = "2026-09-04T00:00:00Z", starlette = "2026-09
 
 [tool.uv.sources]
 appworld = { path = ".tools/appworld", editable = true }
+
+# Function discovery is not yet in the published 0.1.3 wheels. Pin the public SDK
+# commit used for these runs instead of relying on a local development checkout.
+langchain-submilli = { git = "https://github.com/submilli/submilli-python", rev = "cb2f69eccf2f72c275842d7eb337e73a0f7b38e9", subdirectory = "packages/langchain-submilli" }
+submilli = { git = "https://github.com/submilli/submilli-python", rev = "cb2f69eccf2f72c275842d7eb337e73a0f7b38e9", subdirectory = "packages/submilli" }
