@@ -1,5 +1,7 @@
 # Submilli vs MCP, code mode and tool calling on the AppWorld benchmark
 
+On AppWorld, Submilli beat MCP on every model we tested: 10–21 points higher success rate, 33–63% cheaper, and 1.5–3x faster.
+
 [Submilli](https://submilli.ai) beat the alternatives across all models tested in success rate, cost and speed.
 Submilli beat MCP tool calls on every model we tested: 10–21% higher success rate, 33–63% cheaper, and 1.5–3x faster.
 
@@ -57,7 +59,7 @@ With Submilli, the agent writes one program for many steps:
 - **Data stays out of the model's context.** The program reads, filters and sums the records. Only the result goes back to the model.
 - **Counting and filtering happen in code.** Cheap models make most of their mistakes when they do this work in their heads.
 - **The agent knows what each call returns.** Each Package declares its functions and return types. The agent reads them before it writes code, so its first program can chain calls safely. MCP tools describe their inputs but not their outputs.
-- **The agent finds its own APIs.** MCP and code mode depend on a model that picks at most 20 tools before the agent starts. When it misses one the task needs, success falls to 8 to 62%.
+- **The agent finds its own APIs.** With MCP and code mode, a separate model picks up to 20 tools before the agent starts. When it misses a tool the task needs, the agent can't recover, and success on those tasks drops to between 8% and 62%, depending on the model. Submilli's agent looks up the APIs it needs as it goes, so there's no up-front pick to get wrong.
 
 ## How you can get there
 
